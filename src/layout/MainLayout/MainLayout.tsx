@@ -5,7 +5,7 @@ import Search from '../../components/Search'
 
 import Navigation, { VerticalList, HorizontalList } from 'react-key-navigation';
 
-import clsx from 'clsx';
+// import clsx from 'clsx';
 
 import './MainLayout.scss'
 
