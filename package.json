@@ -2,6 +2,16 @@
   "name": "playerh",
   "version": "0.1.0",
   "private": true,
+  "homepage": "http://playerh.com",
+  "url": "https://github.com/vluanna/playerh",
+  "author": "Luan Nguyen <luan.nguyen.fe@gmail.com> (http://playerh.com/)",
+  "email": "luan.nguyen.fe@gmail.com",
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/vluanna/playerh/blob/master/LICENSE"
+    }
+  ],
   "dependencies": {
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^11.2.7",
