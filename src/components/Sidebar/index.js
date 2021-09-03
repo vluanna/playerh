@@ -1,7 +1,7 @@
 import React from 'react';
 import { Focusable, VerticalList } from 'react-key-navigation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faHome, faStar, faMusic, faEllipsisV, faFilm, faUser, faSearch } from '@fortawesome/free-solid-svg-icons'
+import { faHome, faStar, faMusic, faEllipsisV, faFilm, faSearch } from '@fortawesome/free-solid-svg-icons'
 
 class ToogleItem extends React.Component {
     constructor() {
@@ -49,7 +49,6 @@ export default class Sidebar extends React.Component {
                 <div id="menu">
                     <VerticalList onFocus={() => this.setActive(true)}
                         onBlur={() => this.setActive(false)} focusId="sidebar" retainLastFocus={true}>
-                        <ToogleItem icon={faUser}>Login</ToogleItem>
                         <ToogleItem icon={faSearch}>Search</ToogleItem>
                         <ToogleItem icon={faHome}>Home</ToogleItem>
                         <ToogleItem icon={faStar}>Star</ToogleItem>
