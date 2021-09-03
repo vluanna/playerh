@@ -1,6 +1,6 @@
 import React from "react";
 import { useState } from "react";
-import { Show, SimpleShowLayout, TextField, useRecordContext, FunctionField, UrlField } from 'react-admin';
+import { Show, SimpleShowLayout, TextField, useRecordContext, FunctionField } from 'react-admin';
 import { TextField as MuTextFiled } from '@material-ui/core';
 import ReactPlayer from 'react-player'
 
