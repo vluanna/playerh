@@ -8,7 +8,7 @@ import axios from 'axios';
 
 const dataProviderFactory = ({ fshare_config, playerh_api = {} }: RemoteConfigType): DataProvider => {
 
-    const { app_key, domain_api_v2, app_name } = fshare_config;
+    const { domain_api_v2, app_name } = fshare_config;
     const { base_url } = playerh_api;
     const baseURL = base_url || process.env.REACT_APP_API_BASE_URL
 
