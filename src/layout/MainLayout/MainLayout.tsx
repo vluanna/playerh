@@ -1,54 +1,39 @@
-import React, { useState } from 'react'
-import Sidebar from '../../components/Sidebar'
-import List from '../../components/List'
-import Search from '../../components/Search'
+// @ts-nocheck
+import React from 'react'
+import authProviderFactory from '../../providers/authProvider';
+import dataProviderFactory from '../../providers/dataProvider';
+import withRemoteConfig, { RemoteConfigType } from '../../hocs/withRemoteConfig';
+import { Admin, Resource } from 'react-admin';
+import { Star } from '@material-ui/icons'
 
-import Navigation, { VerticalList, HorizontalList } from 'react-key-navigation';
-
+// import Dashboard from '../../pages/Dashboard';
+import Login from '../../pages/Login';
+import FavoriteList from '../../pages/favorites/FavoriteList';
+import PlayOverview from '../../components/PlayOverview';
 // import clsx from 'clsx';
+import Theme from '../../constants/Theme';
 
 import './MainLayout.scss'
 
 type MainLayoutProps = {
-    children?: JSX.Element,
-    list?: string[],
+    remoteConfig?: RemoteConfigType,
 }
 
 
-const MainLayout = ({ children, list = [] }: MainLayoutProps): JSX.Element => {
-
-    const [active, setActive] = useState(-1)
-
-    const onBlurList = () => {
-        setActive(-1)
-    }
-
-    const changeFocusTo = (index) => {
-        setActive(index);
-    }
+const MainLayout = ({ remoteConfig = {} }: MainLayoutProps): JSX.Element => {
 
     return (
-        <Navigation>
-            <div>
-                <HorizontalList>
-                    <Sidebar />
-                    <div className="mainbox">
-                        <VerticalList navDefault>
-                            <Search />
-                            <VerticalList id="content" onBlur={() => onBlurList()}>
-                                {list.map((list, i) =>
-                                    <List key={i} title={list}
-                                        onFocus={() => changeFocusTo(i)}
-                                        visible={active !== null ? i >= active : true}
-                                    />
-                                )}
-                            </VerticalList>
-                        </VerticalList>
-                    </div>
-                </HorizontalList>
-            </div>
-        </Navigation>
+        <Admin
+            dataProvider={dataProviderFactory(remoteConfig)}
+            authProvider={authProviderFactory(remoteConfig)}
+            loginPage={Login}
+            theme={Theme}
+        // dashboard={Dashboard}
+        >
+            <Resource name="favorites" list={FavoriteList} show={PlayOverview} icon={Star} />
+            {/* {children} */}
+        </Admin>
     )
 }
 
-export default MainLayout
+export default withRemoteConfig(MainLayout)
