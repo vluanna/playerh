@@ -1,3 +1,5 @@
+export const DEFAULT_LANGUAGE = 'vi'
+
 export const LOCAL_STORAGE_KEY = {
     PREFIX: 'playerh:',
     AUTH: 'auth',

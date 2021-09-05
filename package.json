@@ -35,6 +35,7 @@
     "react-player": "^2.9.0",
     "react-scripts": "4.0.3",
     "react-tv-navigation": "^0.4.3",
+    "react-use": "^17.3.1",
     "typescript": "^4.4.2",
     "web-vitals": "^1.1.2"
   },

@@ -1,7 +1,7 @@
 // @ts-nocheck
 import React from 'react';
 import fileSize from 'filesize';
-import { Datagrid, TextField, List, FunctionField, useResourceContext, ShowButton } from 'react-admin';
+import { Datagrid, TextField, List, FunctionField, useResourceContext, ShowButton, DeleteButton } from 'react-admin';
 import { FileCopy, Folder } from '@material-ui/icons';
 import { FILE_TYPE } from '../../constants/Defined';
 
@@ -21,6 +21,7 @@ const FolderList = ({ name, ...props }) => {
                     <TextField source="description" />
                     <TextField source="folder_path" />
                     <ShowButton record={Object.assign(props.record || {}, { id: props.record?.linkcode })} />
+                    <DeleteButton />
                 </Datagrid>
             </>
         </List>
