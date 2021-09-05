@@ -29,32 +29,60 @@ const dataProviderFactory = ({ fshare_config, playerh_api = {} }: RemoteConfigTy
     }
 
     const fileHandlers = {
-        getOne: (params) => {
-            console.log('=====> Favorite GetOne', params)
-            const auth = LocalStorage.get(LOCAL_STORAGE_KEY.AUTH)
-            return getRequestInstance({
-                headers: {
-                    Authorization: `Bearer ${auth?.token}`
-                }
-            }).post('/api/session/download', {
-                "zipflag": 0,
-                "url": `https://www.fshare.vn/file/${params.id}`,
-                "password": params.password,
-                "token": auth?.token
-            }).then(resp => ({ data: { ...params, location: resp.data.location } }))
+        download: {
+            getOne: (params) => {
+                const auth = LocalStorage.get(LOCAL_STORAGE_KEY.AUTH)
+                return getRequestInstance({
+                    headers: {
+                        Authorization: `Bearer ${auth?.token}`
+                    }
+                }).post('/api/session/download', {
+                    "zipflag": 0,
+                    "url": `https://www.fshare.vn/file/${params.linkcode}`,
+                    "password": params.password,
+                    "token": auth?.token
+                }).then(resp => ({ data: { ...params, location: resp.data.location } }))
+            }
         },
     }
 
     const dataHandlers = {
+        ...fileHandlers,
         favorites: {
-            ...fileHandlers,
             getList: (params) => {
                 return getRequestInstance().get('/api/fileops/listFavorite').then(response => ({
-                    data: (response.data || []).map(item => Object.assign(item, { id: item.linkcode })),
-                    total: response.data?.length || 0
+                    data: (response?.data || []),
+                    total: response?.data?.length || 0
                 }))
             },
-        }
+            delete: ({ id }, previousData) => {
+                const auth = LocalStorage.get(LOCAL_STORAGE_KEY.AUTH)
+                return getRequestInstance().post('/api/fileops/ChangeFavorite', {
+                    items: [id],
+                    status: 0,
+                    token: auth?.token
+                }).then(response => Object.assign(previousData, response?.data || {}))
+            },
+            deleteMany: ({ ids }) => {
+                const auth = LocalStorage.get(LOCAL_STORAGE_KEY.AUTH)
+                return getRequestInstance().post('/api/fileops/ChangeFavorite', {
+                    items: ids,
+                    status: 0,
+                    token: auth?.token
+                }).then(response => response?.data)
+            },
+        },
+        subtitles: {
+            getList: (params) => {
+                return axios.post(`${baseURL}/subtitle/search`, params).then(response => ({
+                    data: (response?.data?.data || []),
+                    total: response?.data?.total_count || 0
+                }))
+            },
+            getOne: (params) => {
+                return axios.post(`${baseURL}/subtitle/download`, params).then(response => ({ data: { ...params, ...(response?.data || {}) } }))
+            }
+        },
     }
 
     const getHandler = (resource, name) => {
@@ -68,7 +96,7 @@ const dataProviderFactory = ({ fshare_config, playerh_api = {} }: RemoteConfigTy
         return result
     }, {})
 
-    return parseHandlerFromKeys(['getList', 'getOne'])
+    return parseHandlerFromKeys(['getList', 'getOne', 'getMany', 'create', 'update', 'updateMany', 'delete', 'deleteMany'])
 
 }
 

@@ -31,7 +31,7 @@ const authProviderFactory = ({ fshare_config, playerh_api = {} }: RemoteConfigTy
                     return response.json();
                 })
                 .then(auth => {
-                    LocalStorage.set(LOCAL_STORAGE_KEY.AUTH, auth);
+                    LocalStorage.set(LOCAL_STORAGE_KEY.AUTH, Object.assign(auth, { expire: new Date().setHours(new Date().getHours() + 4) }));
                 })
                 .catch(() => {
                     throw new Error('Network error')
@@ -46,9 +46,36 @@ const authProviderFactory = ({ fshare_config, playerh_api = {} }: RemoteConfigTy
             // other error code (404, 500, etc): no need to log out
             return Promise.resolve();
         },
-        checkAuth: () => LocalStorage.get(LOCAL_STORAGE_KEY.AUTH)
-            ? Promise.resolve()
-            : Promise.reject({ redirectTo: '/no-access' }),
+        checkAuth: () => {
+            const auth = LocalStorage.get(LOCAL_STORAGE_KEY.AUTH)
+            return new Promise<void>((resolve, reject) => {
+                if (auth && auth.token && auth.session_id) {
+                    const { expire, token, session_id } = auth;
+                    if (expire > (new Date().getTime() / 1000) - 10) {
+                        resolve();
+                    } else {
+                        const request = new Request(`${baseURL}/api/user/refreshToken`, {
+                            method: 'POST',
+                            body: JSON.stringify({ token, app_key }),
+                            headers: new Headers(Object.assign(headers, { 'x-session-id': `session_id=${session_id}` })),
+                        });
+                        fetch(request)
+                            .then(response => {
+                                if (response.status !== 200) {
+                                    throw new Error(response.statusText);
+                                }
+                                return response.json();
+                            })
+                            .then(({ token, session_id }) => {
+                                LocalStorage.set(LOCAL_STORAGE_KEY.AUTH, Object.assign(auth, { token, session_id }))
+                                resolve();
+                            }).catch(() => reject({ redirectTo: '/login' }));
+                    }
+                } else {
+                    reject({ redirectTo: '/login' })
+                }
+            })
+        },
         logout: () => {
             LocalStorage.remove(LOCAL_STORAGE_KEY.AUTH);
             const request = new Request(`${baseURL}/api/user/logout`, {
