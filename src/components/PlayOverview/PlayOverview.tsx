@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { Show, SimpleShowLayout, TextField, FunctionField, UrlField } from 'react-admin';
 import { TextField as MuTextField } from '@material-ui/core';
 import Switch from '@material-ui/core/Switch';
@@ -16,12 +16,14 @@ export const PlayOverview = (props) => {
 
     const [password, setPassword] = useState('')
 
-    const onSelectSub = (subData) => {
+    const onSelectSub = useCallback((subData) => {
         console.log('onSelectSub', subData)
         setSubtitles([...subtitles, subData])
-    }
+    }, [subtitles])
 
-    const subTitleAside = useMemo(() => showSubtitles ? <SubtitleSearch selections={subtitles} onSelect={onSelectSub} /> : null, [showSubtitles])
+    const subTitleAside = useMemo(() => {
+        return showSubtitles ? <SubtitleSearch selections={subtitles} onSelect={onSelectSub} /> : null
+    }, [showSubtitles, subtitles, onSelectSub])
 
     return (
         <Show {...props} aside={subTitleAside}>
