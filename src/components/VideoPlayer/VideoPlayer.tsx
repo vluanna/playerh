@@ -49,7 +49,7 @@ const VideoPlayer = ({ record, password, subtitles = [], light = false, width, h
     // console.log('tracks', tracks, subtitles)
 
     return (
-        <div style={{ width, height, minHeight: '50vh', position: 'relative' }}>
+        <div style={{ width, height, minHeight: '50vh', maxHeight: '70vh', position: 'relative' }}>
             {!isFetching && (
                 <ReactPlayer
                     {...props}
