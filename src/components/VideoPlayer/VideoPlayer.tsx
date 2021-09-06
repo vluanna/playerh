@@ -1,14 +1,18 @@
 // @ts-nocheck
 import React, { useEffect, useState, useContext, useMemo } from "react";
-import { Loading, Error, DataProviderContext } from 'react-admin';
+import { Error, DataProviderContext } from 'react-admin';
 import ReactPlayer from 'react-player'
 import { get, compact } from 'lodash'
 import { DEFAULT_LANGUAGE } from "../../constants/Defined";
+import PlayArrowIcon from '@material-ui/icons/PlayArrow';
+import CircularProgress from '@material-ui/core/CircularProgress';
+import './VideoPlayer.scss';
 
-const VideoPlayer = ({ record, password, subtitles = [] }) => {
+const VideoPlayer = ({ record, password, subtitles = [], light = false, width, height, ...props }) => {
 
     const dataProvider = useContext(DataProviderContext);
     const [data, setData] = useState({})
+    const [playing, setPlaying] = useState(false)
     const [isFetching, setIsFetching] = useState(false);
     const [error, setError] = useState();
 
@@ -17,7 +21,7 @@ const VideoPlayer = ({ record, password, subtitles = [] }) => {
     }
 
     const tracks = useMemo(() => compact(subtitles).map(sub => ({
-        kind: 'subtitles', src: sub?.link, srcLang: get(sub, 'attributes.language'), default: isDefaultSub(sub)
+        kind: 'subtitles', src: sub?.src || sub?.link, srcLang: get(sub, 'attributes.language'), default: isDefaultSub(sub)
     })), [subtitles])
 
     useEffect(() => {
@@ -37,22 +41,49 @@ const VideoPlayer = ({ record, password, subtitles = [] }) => {
 
     useEffect(() => {
         setIsFetching(true)
-        setTimeout(() => setIsFetching(false), 1000)
-    }, [tracks])
+        setTimeout(() => setIsFetching(false), 500)
+    }, [tracks, data])
 
-    if (isFetching) return <Loading />;
     if (error) return <Error />;
 
-    console.log('tracks', tracks, subtitles)
+    // console.log('tracks', tracks, subtitles)
 
     return (
-        <ReactPlayer
-            url={data.location}
-            controls={true}
-            config={{
-                file: { tracks }
-            }}
-        />
+        <div style={{ width, height, minHeight: '50vh', position: 'relative' }}>
+            {!isFetching && (
+                <ReactPlayer
+                    {...props}
+                    width="100%"
+                    height="100%"
+                    playing={playing}
+                    light={light}
+                    url={data.location}
+                    controls={playing}
+                    config={{
+                        file: { tracks }
+                    }}
+                />
+            )}
+            {(!playing || isFetching) && (
+                <div
+                    onClick={() => setPlaying(true)}
+                    style={{
+                        top: 0, left: 0,
+                        position: 'absolute',
+                        width: '100%',
+                        height: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        background: 'rgba(0,0,0,0.7)',
+                    }}>
+                    {isFetching ? (
+                        <CircularProgress color="white" />
+                    ) : <PlayArrowIcon color="white" fontSize="large" />}
+                </div>
+            )}
+        </div>
     )
 }
 

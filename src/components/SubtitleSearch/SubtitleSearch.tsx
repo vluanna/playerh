@@ -1,15 +1,20 @@
 // @ts-nocheck
 import React, { useState, useEffect, useContext, useCallback, Fragment } from 'react';
-import { DataProviderContext, Loading, Error, Button, useRecordContext } from 'react-admin';
+import { DataProviderContext, Error, useRecordContext } from 'react-admin';
 import { TextField } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
+import Button from '@material-ui/core/Button';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import Divider from '@material-ui/core/Divider';
 import ListItemText from '@material-ui/core/ListItemText';
-import ListItemAvatar from '@material-ui/core/ListItemAvatar';
-import Avatar from '@material-ui/core/Avatar';
+// import ListItemAvatar from '@material-ui/core/ListItemAvatar';
+// import Avatar from '@material-ui/core/Avatar';
 import Typography from '@material-ui/core/Typography';
+import CircularProgress from '@material-ui/core/CircularProgress';
+import GetAppIcon from '@material-ui/icons/GetApp';
+
+
 import { useDebounce } from 'react-use';
 import { get } from 'lodash';
 
@@ -45,7 +50,7 @@ const SubtitleSearch = ({
         const fileId = get(sub, 'attributes.files[0].file_id');
         if (fileId) {
             setLoadingFile(sub.id)
-            dataProvider.getOne('subtitles', { ...sub, id: fileId, format: 'vtt', })
+            dataProvider.getOne('subtitles', { ...sub, id: fileId, format: 'srt', })
                 .then(({ data }) => {
                     console.log('SUB DOWNLOADED', data)
                     onSelect(data);
@@ -77,17 +82,18 @@ const SubtitleSearch = ({
     }, [record?.name]);
 
     const renderSubtitleItem = (sub) => {
-        const imageUrl = sub?.attributes?.related_links?.img_url;
+        // const imageUrl = sub?.attributes?.related_links?.img_url;
         const release = sub?.attributes?.release;
         const ratings = sub?.attributes?.ratings;
         const downloadCount = sub?.attributes?.download_count;
         return (
             <Fragment>
-                <ListItemAvatar>
+                {/* <ListItemAvatar>
                     <Avatar alt="Remy Sharp" src={imageUrl} />
-                </ListItemAvatar>
+                </ListItemAvatar> */}
                 <ListItemText
                     primary={release}
+                    primaryTypographyProps={{ color: 'textPrimary' }}
                     secondary={
                         <Fragment>
                             <Typography
@@ -99,8 +105,8 @@ const SubtitleSearch = ({
                                 Ratings: {ratings}
                             </Typography>
                             {` - Download count: ${downloadCount}`}
-                            <div>
-                                <Button disabled={isDownloadDisabled(sub)} label="Download" onClick={() => onDownloadSubtitle(sub)} />
+                            <div style={{ marginTop: 10 }}>
+                                <Button variant="outlined" disabled={isDownloadDisabled(sub)} onClick={() => onDownloadSubtitle(sub)} startIcon={<GetAppIcon />}>Download</Button>
                             </div>
                         </Fragment>
                     }
@@ -109,16 +115,16 @@ const SubtitleSearch = ({
         )
     }
 
-    if (loading) return <Loading />;
+    if (loading) return <CircularProgress color="white" />;
     if (error) return <Error />;
 
     return (
-        <div style={{ width: 400, margin: '1em' }}>
+        <div style={{ width: 500, margin: '1em' }}>
             <TextField value={name} onChange={e => setName(e.target.value)} style={{ width: '100%' }} autoFocus />
-            <List className={classes.root}>
+            <List className={classes.root} style={{ width: '100%' }}>
                 {data.map((sub, index) => (
                     <Fragment key={sub.id || index}>
-                        <ListItem alignItems="flex-start">{renderSubtitleItem(sub)}</ListItem>
+                        <ListItem alignItems="flex-start" style={{ width: 500 }}>{renderSubtitleItem(sub)}</ListItem>
                         {index < data.length - 1 && (
                             <Divider variant="inset" component="li" />
                         )}
@@ -126,7 +132,7 @@ const SubtitleSearch = ({
                 ))}
             </List>
             {!data.length && !loading && (
-                <div>Empty</div>
+                <div>No data</div>
             )}
         </div>
     )
