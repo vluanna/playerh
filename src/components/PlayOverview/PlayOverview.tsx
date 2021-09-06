@@ -76,7 +76,7 @@ export const PlayOverview = (props) => {
                 </div>
 
                 <FunctionField addLabel={false} render={record => (
-                    <VideoPlayer record={record} password={password} subtitles={subtitles} width="100%" height="65%" />
+                    <VideoPlayer record={record} password={password} subtitles={subtitles} width="100%" height="75vh" />
                 )} />
                 <FunctionField addLabel={false} render={record => subTitleAside} />
             </SimpleShowLayout>
