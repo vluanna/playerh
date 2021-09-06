@@ -4,7 +4,7 @@ import { defaultTheme } from "react-admin";
 const Theme = createTheme({
     ...defaultTheme,
     palette: {
-        // type: 'dark', // Switching the dark mode on is a single property value change.
+        type: 'dark', // Switching the dark mode on is a single property value change.
         primary: {
             main: '#cd1417'
         },
@@ -12,7 +12,7 @@ const Theme = createTheme({
             main: '#444444',
         },
         background: {
-            default: '#ffffff',
+            // default: '#ffffff',
         },
     },
 });
