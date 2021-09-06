@@ -43,7 +43,7 @@ const SubtitleSearch = ({
     const dataProvider = useContext(DataProviderContext);
 
     const isDownloadDisabled = (sub) => {
-        return loadingFile === sub.id || selections.some(item => item.id === sub.id)
+        return loadingFile === sub?.id || selections.some(item => item?.id && item?.id === sub?.id)
     }
 
     const onDownloadSubtitle = (sub) => {

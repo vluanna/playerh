@@ -80,7 +80,8 @@ const dataProviderFactory = ({ fshare_config, playerh_api = {} }: RemoteConfigTy
                 }))
             },
             getOne: (params) => {
-                return axios.post(`${baseURL}/subtitle/download`, params).then(response => ({ data: { ...params, ...(response?.data || {}) } }))
+                return axios.post(`${baseURL}/subtitle/download`, { id: params.id, format: params.format })
+                    .then(response => ({ data: { ...params, ...(response?.data || {}) } }))
             }
         },
     }
