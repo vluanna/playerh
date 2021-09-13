@@ -32,6 +32,7 @@ const authProviderFactory = ({ fshare_config, playerh_api = {} }: RemoteConfigTy
                 })
                 .then(auth => {
                     LocalStorage.set(LOCAL_STORAGE_KEY.AUTH, Object.assign(auth, { expire: new Date().setHours(new Date().getHours() + 4) }));
+                    LocalStorage.set(LOCAL_STORAGE_KEY.AUTH_USERNAME, username)
                 })
                 .catch(() => {
                     throw new Error('Network error')
