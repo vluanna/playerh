@@ -8,7 +8,7 @@ import axios from 'axios';
 
 const dataProviderFactory = ({ fshare_config, playerh_api = {} }: RemoteConfigType): DataProvider => {
 
-    const { domain_api_v2, app_name } = fshare_config;
+    const { domain_api_v2, app_name, app_key } = fshare_config;
     const { base_url } = playerh_api;
     const baseURL = base_url || process.env.REACT_APP_API_BASE_URL
 
@@ -16,16 +16,56 @@ const dataProviderFactory = ({ fshare_config, playerh_api = {} }: RemoteConfigTy
 
     const getRequestInstance = (options?) => {
         const auth = LocalStorage.get(LOCAL_STORAGE_KEY.AUTH)
-        return axios.create({
+        const instance = axios.create({
             baseURL,
             headers: {
                 'Content-Type': 'application/json',
                 'X-Base-Url': domain_api_v2,
                 'X-App-Name': app_name,
-                'X-Session-Id': `session_id=${auth?.session_id}`,
+                // 'X-Session-Id': `session_id=${auth?.session_id}`,
                 ...(options?.headers || {}),
             },
         })
+        const checkRefreshToken = async (response) => {
+            const originalConfig = response.config;
+            if (originalConfig?.url !== "/api/user/login") {
+                // Access Token was expired
+                if (response.status === 201 && response.data.msg === 'Not logged in yet!' && !originalConfig._retry) {
+                    originalConfig._retry = true;
+                    try {
+                        const rs = await instance.post("/api/user/refreshToken", {
+                            token: auth.token, app_key
+                        });
+                        const { token, session_id } = rs.data;
+                        LocalStorage.set(LOCAL_STORAGE_KEY.AUTH, Object.assign(auth, { token, session_id }))
+
+                        return instance(originalConfig);
+                    } catch (_error) {
+                        return Promise.reject(_error);
+                    }
+                }
+            }
+
+            return Promise.resolve(response);
+        }
+        instance.interceptors.request.use(
+            (config) => {
+                config.headers["X-Session-Id"] = `session_id=${auth?.session_id}`; // for Node.js Express back-end
+                return config;
+            },
+            (error) => {
+                return Promise.reject(error);
+            }
+        );
+        if (auth && auth.token && auth.session_id) {
+            instance.interceptors.response.use(
+                async (res) => {
+                    return await checkRefreshToken(res)
+                },
+                (err) => Promise.reject(err)
+            );
+        }
+        return instance
     }
 
     const fileHandlers = {
