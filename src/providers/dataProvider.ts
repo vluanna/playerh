@@ -10,7 +10,8 @@ const dataProviderFactory = ({ fshare_config, playerh_api = {} }: RemoteConfigTy
 
     const { domain_api_v2, app_name, app_key } = fshare_config;
     const { base_url } = playerh_api;
-    const baseURL = base_url || process.env.REACT_APP_API_BASE_URL
+    // const baseURL = base_url || process.env.REACT_APP_API_BASE_URL
+    const baseURL = process.env.REACT_APP_API_BASE_URL
 
 
 
@@ -95,13 +96,13 @@ const dataProviderFactory = ({ fshare_config, playerh_api = {} }: RemoteConfigTy
                     total: response?.data?.length || 0
                 }))
             },
-            delete: ({ id }, previousData) => {
+            delete: ({ id, previousData }) => {
                 const auth = LocalStorage.get(LOCAL_STORAGE_KEY.AUTH)
                 return getRequestInstance().post('/api/fileops/ChangeFavorite', {
-                    items: [id],
+                    items: [previousData.linkcode],
                     status: 0,
                     token: auth?.token
-                }).then(response => Object.assign(previousData, response?.data || {}))
+                }).then(response => ({ data: Object.assign(previousData, response?.data || {}) }))
             },
             deleteMany: ({ ids }) => {
                 const auth = LocalStorage.get(LOCAL_STORAGE_KEY.AUTH)
@@ -116,12 +117,21 @@ const dataProviderFactory = ({ fshare_config, playerh_api = {} }: RemoteConfigTy
             getList: (params) => {
                 return axios.post(`${baseURL}/subtitle/search`, params).then(response => ({
                     data: (response?.data?.data || []),
-                    total: response?.data?.total_count || 0
+                    total: response?.data?.totalCount || 0
                 }))
             },
             getOne: (params) => {
-                return axios.post(`${baseURL}/subtitle/download`, { id: params.id, format: params.format })
-                    .then(response => ({ data: { ...params, ...(response?.data || {}) } }))
+                return axios.post(`${baseURL}/subtitle/detail`, { url: params.url, languages: params.languages.join(',') })
+                    .then(response => ({ data: response?.data || {} }))
+            },
+        },
+        subtitle_download: {
+            getOne: (params) => {
+                return axios.post(`${baseURL}/subtitle/download`, { url: params.url }, { responseType: 'blob' })
+                    .then(response => {
+                        const blob = response.data //new Blob([response.data], { type: 'text/srt' })
+                        return { data: Object.assign(params, { blob }) }
+                    })
             }
         },
     }

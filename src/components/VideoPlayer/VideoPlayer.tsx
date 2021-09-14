@@ -17,11 +17,11 @@ const VideoPlayer = ({ record, password, subtitles = [], light = false, width, h
     const [error, setError] = useState();
 
     const isDefaultSub = (sub) => {
-        return get(sub, 'attributes.language') === DEFAULT_LANGUAGE
+        return get(sub, 'language') === DEFAULT_LANGUAGE.code || get(sub, 'language') === DEFAULT_LANGUAGE.name
     }
 
     const tracks = useMemo(() => compact(subtitles).map(sub => ({
-        kind: 'subtitles', src: sub?.src || sub?.link, srcLang: get(sub, 'attributes.language'), default: isDefaultSub(sub)
+        kind: 'subtitles', src: sub?.src || sub?.link, srcLang: get(sub, 'language'), default: isDefaultSub(sub)
     })), [subtitles])
 
     useEffect(() => {

@@ -1,32 +1,37 @@
 // @ts-nocheck
-import React, { useState, useEffect, useContext, useCallback, Fragment } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { DataProviderContext, Error, useRecordContext } from 'react-admin';
 import { TextField } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
-import Button from '@material-ui/core/Button';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import Divider from '@material-ui/core/Divider';
-import ListItemText from '@material-ui/core/ListItemText';
-// import ListItemAvatar from '@material-ui/core/ListItemAvatar';
-// import Avatar from '@material-ui/core/Avatar';
-import Typography from '@material-ui/core/Typography';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import GetAppIcon from '@material-ui/icons/GetApp';
-
+import Table from '@material-ui/core/Table';
+import TableHead from '@material-ui/core/TableHead';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableContainer from '@material-ui/core/TableContainer';
+import TableRow from '@material-ui/core/TableRow';
+import TableFooter from '@material-ui/core/TableFooter';
+import TablePagination from '@material-ui/core/TablePagination';
 
 import { useDebounce } from 'react-use';
-import { get } from 'lodash';
+// import { get } from 'lodash';
+import { useMemo } from 'react';
+import SubtitleDetail from './SubtitleDetail';
 
 const useStyles = makeStyles((theme) => ({
     root: {
         width: '100%',
-        maxWidth: '36ch',
         backgroundColor: theme.palette.background.paper,
     },
     inline: {
         display: 'inline',
     },
+    row: {
+        cursor: 'pointer',
+        "&:hover": {
+            background: "#333"
+        }
+    }
 }));
 
 const SubtitleSearch = ({
@@ -38,32 +43,60 @@ const SubtitleSearch = ({
     const [name, setName] = useState(record?.name);
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [loadingFile, setLoadingFile] = useState(null);
     const [error, setError] = useState();
+    const [selectedUrl, setSelectedUrl] = useState(null);
+    const [page, setPage] = React.useState(0);
+    const [rowsPerPage, setRowsPerPage] = React.useState(5);
     const dataProvider = useContext(DataProviderContext);
+    const [subDetail, setSubDetail] = useState(null)
 
-    const isDownloadDisabled = (sub) => {
-        return loadingFile === sub?.id || selections.some(item => item?.id && item?.id === sub?.id)
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+    };
+
+    const onSelectSub = (sub) => {
+        console.log(sub)
+        downloadSubtitle(sub, () => setSubDetail(null))
     }
 
-    const onDownloadSubtitle = (sub) => {
-        const fileId = get(sub, 'attributes.files[0].file_id');
-        if (fileId) {
-            setLoadingFile(sub.id)
-            dataProvider.getOne('subtitles', { ...sub, id: fileId, format: 'srt', })
+    const downloadSubtitle = useCallback((sub, callback) => {
+        if (sub?.url) {
+            setLoading(true)
+            dataProvider.getOne('subtitle_download', sub)
                 .then(({ data }) => {
-                    console.log('SUB DOWNLOADED', data)
+                    console.log('SUB DOWNLOAD', data)
                     onSelect(data);
+                    callback()
                 })
                 .catch(error => {
                     console.log(error)
                 })
-                .finally(() => setLoadingFile(null))
+                .finally(() => setLoading(false))
         }
-    }
+    }, [dataProvider, onSelect])
 
-    const searchSubtitle = useCallback((keyword = name, languages = ['vi']) => {
-        dataProvider.getList('subtitles', { keyword, languages })
+    const onGetDetailSubtitle = useCallback((url, languages = ['vi']) => {
+        if (url) {
+            setLoading(true)
+            dataProvider.getOne('subtitles', { url, languages })
+                .then(({ data }) => {
+                    console.log('SUB DETAIL', data)
+                    setSubDetail(data);
+                })
+                .catch(error => {
+                    console.log(error)
+                })
+                .finally(() => setLoading(false))
+        }
+    }, [dataProvider])
+
+    const searchSubtitle = useCallback((keyword = name) => {
+        dataProvider.getList('subtitles', { keyword })
             .then(({ data }) => {
                 setData(data);
             })
@@ -78,59 +111,70 @@ const SubtitleSearch = ({
     }, 600, [name])
 
     useEffect(() => {
-        setName(record?.name);
+        const fileName = record?.name?.split('.').slice(0, -1).join('.')
+        setName(fileName);
     }, [record?.name]);
 
-    const renderSubtitleItem = (sub) => {
-        // const imageUrl = sub?.attributes?.related_links?.img_url;
-        const release = sub?.attributes?.release;
-        const ratings = sub?.attributes?.ratings;
-        const downloadCount = sub?.attributes?.download_count;
+    useEffect(() => {
+        if (selectedUrl) {
+            onGetDetailSubtitle(selectedUrl)
+        }
+    }, [selectedUrl, onGetDetailSubtitle]);
+
+    const renderSubDetail = () => {
+        if (!subDetail) return null
+
         return (
-            <Fragment>
-                {/* <ListItemAvatar>
-                    <Avatar alt="Remy Sharp" src={imageUrl} />
-                </ListItemAvatar> */}
-                <ListItemText
-                    primary={release}
-                    primaryTypographyProps={{ color: 'textPrimary' }}
-                    secondary={
-                        <Fragment>
-                            <Typography
-                                component="span"
-                                variant="body2"
-                                className={classes.inline}
-                                color="textPrimary"
-                            >
-                                Ratings: {ratings}
-                            </Typography>
-                            {` - Download count: ${downloadCount}`}
-                            <div style={{ marginTop: 10 }}>
-                                <Button variant="outlined" disabled={isDownloadDisabled(sub)} onClick={() => onDownloadSubtitle(sub)} startIcon={<GetAppIcon />}>Download</Button>
-                            </div>
-                        </Fragment>
-                    }
-                />
-            </Fragment>
+            <SubtitleDetail data={subDetail} onSelectSub={onSelectSub} />
         )
     }
 
-    if (loading) return <CircularProgress color="white" />;
+    const rows = useMemo(() => {
+        return rowsPerPage > 0
+            ? data.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+            : data
+    }, [rowsPerPage, page, data])
+
+    if (loading) return <CircularProgress color="primary" />;
     if (error) return <Error />;
 
     return (
-        <div style={{ width: 500, margin: '1em' }}>
-            <TextField value={name} onChange={e => setName(e.target.value)} style={{ width: '100%' }} autoFocus />
-            <List className={classes.root} style={{ width: '100%' }}>
-                {data.map((sub, index) => (
-                    <Fragment key={sub.id || index}>
-                        <ListItem alignItems="flex-start" style={{ width: 500 }}>{renderSubtitleItem(sub)}</ListItem>
-                        {index < data.length - 1 && (
-                            <Divider variant="inset" component="li" />
-                        )}
-                    </Fragment>
-                ))}
-            </List>
+        <div style={{ width: 650, margin: '1em' }}>
+            {!subDetail ? (
+                <TableContainer>
+                    <Table className={classes.root} aria-label="simple table">
+                        <TableHead>
+                            <TextField value={name} onChange={e => setName(e.target.value)} style={{ width: '100%' }} autoFocus />
+                        </TableHead>
+                        <TableBody>
+                            {rows.map((row) => (
+                                <TableRow key={row.url} className={classes.row}>
+                                    <TableCell component="th" scope="row" onClick={() => setSelectedUrl(row.url)}>
+                                        {row.title}
+                                    </TableCell>
+                                    <TableCell align="right" onClick={() => setSelectedUrl(row.url)}>{row.count}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                        <TableFooter>
+                            <TableRow>
+                                <TablePagination
+                                    rowsPerPageOptions={[5, 10, 25, { label: 'All', value: -1 }]}
+                                    count={data?.length}
+                                    rowsPerPage={rowsPerPage}
+                                    page={page}
+                                    SelectProps={{
+                                        inputProps: { 'aria-label': 'rows per page' },
+                                        native: true,
+                                    }}
+                                    onPageChange={handleChangePage}
+                                    onRowsPerPageChange={handleChangeRowsPerPage}
+                                />
+                            </TableRow>
+                        </TableFooter>
+                    </Table>
+                </TableContainer>
+            ) : renderSubDetail()}
             {!data.length && !loading && (
                 <div>No data</div>
             )}

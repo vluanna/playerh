@@ -1,6 +1,11 @@
-
+video::cue {
+    font-size  : 1 rem;
+    color      : white;
+    opacity    : 1;
+    text-shadow: #333 1px 0 10px;
+}
 
 
 video::-webkit-media-text-track-container {
-    overflow         : visible !important;
+    overflow: visible !important;
 }

@@ -7,7 +7,7 @@ import Modal from '@material-ui/core/Modal';
 import SubtitleSearch from "../SubtitleSearch";
 import { useMemo } from "react";
 import VideoPlayer from "../VideoPlayer";
-import axios from 'axios'
+// import axios from 'axios'
 import VTTConverter from 'srt-webvtt';
 import SearchIcon from '@material-ui/icons/Search';
 
@@ -19,27 +19,19 @@ export const PlayOverview = (props) => {
 
     const [password, setPassword] = useState('')
 
-    const loadSubTrack = (sub, callback) => {
-        axios({
-            url: sub.link,
-            method: 'GET',
-            responseType: 'blob',
-        }).then((response) => {
-            const vttConverter = new VTTConverter(new Blob([response.data], { type: 'text/srt' }))
-            vttConverter
-                .getURL()
-                .then(function (url) { // Its a valid url that can be used further
-                    sub.src = url;
-                    callback(sub)
-                })
-                .catch(function (err) {
-                    console.error(err);
-                    callback()
-                })
-
-        }).catch(() => {
-            callback()
-        });
+    const loadSubTrack = (subData, callback) => {
+        console.log('LOAD SUB:', subData)
+        const vttConverter = new VTTConverter(subData.blob)
+        vttConverter
+            .getURL()
+            .then(function (url) { // Its a valid url that can be used further
+                sub.src = url;
+                callback(sub)
+            })
+            .catch(function (err) {
+                console.error(err);
+                callback()
+            })
     }
 
     const onSelectSub = useCallback((subData) => {
