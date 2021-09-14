@@ -10,8 +10,8 @@ const dataProviderFactory = ({ fshare_config, playerh_api = {} }: RemoteConfigTy
 
     const { domain_api_v2, app_name, app_key } = fshare_config;
     const { base_url } = playerh_api;
-    // const baseURL = base_url || process.env.REACT_APP_API_BASE_URL
-    const baseURL = process.env.REACT_APP_API_BASE_URL
+    const baseURL = base_url || process.env.REACT_APP_API_BASE_URL
+    // const baseURL = process.env.REACT_APP_API_BASE_URL
 
 
 
