@@ -25,8 +25,8 @@ export const PlayOverview = (props) => {
         vttConverter
             .getURL()
             .then(function (url) { // Its a valid url that can be used further
-                sub.src = url;
-                callback(sub)
+                subData.src = url;
+                callback(subData)
             })
             .catch(function (err) {
                 console.error(err);
