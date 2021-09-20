@@ -90,9 +90,10 @@ const dataProviderFactory = ({ fshare_config, playerh_api = {} }: RemoteConfigTy
     const dataHandlers = {
         ...fileHandlers,
         favorites: {
+            // getOne: (params) => Promise.resolve(params),
             getList: (params) => {
                 return getRequestInstance().get('/api/fileops/listFavorite').then(response => ({
-                    data: (response?.data || []),
+                    data: (response?.data || []).map(item => ({ ...item, id: item.linkcode })),
                     total: response?.data?.length || 0
                 }))
             },

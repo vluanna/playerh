@@ -111,7 +111,11 @@ const SubtitleSearch = ({
     }, 600, [name])
 
     useEffect(() => {
-        const fileName = record?.name?.split('.').slice(0, -1).join('.')
+        let fileName = record?.name?.split('.').slice(0, -1).join('.')
+        // if (!fileName) {
+        //     const paths = record.url.split('/');
+        //     fileName = paths[paths.length - 1]?.split('.').slice(0, -1).join('.')
+        // }
         setName(fileName);
     }, [record?.name]);
 
